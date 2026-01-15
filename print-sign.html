@@ -44,7 +44,6 @@
         </div>
         <div class="box">
           <img id="qr" class="qr" alt="QR Code" />
-          <div style="margin-top:10px; font-size: 12px; color:#64748b; word-break: break-all;" id="link"></div>
         </div>
       </div>
     </div>
@@ -62,7 +61,6 @@
   
   document.getElementById("biz").textContent = biz;
   document.getElementById("sub").textContent = city ? `Thanks for visiting in ${city} — quick review?` : `Thanks — quick review?`;
-  document.getElementById("link").textContent = reviewLink || "(No review link provided)";
 
   // QR generation using QR Server API (free alternative to Google Charts)
   const size = "400x400";
