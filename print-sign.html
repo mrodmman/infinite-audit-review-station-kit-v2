@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tap or Scan to Leave a Review</title>
+  <style>
+    @media print { .noprint{ display:none !important; } }
+    body{ margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:#0b1220; background:#f6f7fb; }
+    .wrap{ max-width: 850px; margin:0 auto; padding: 24px; }
+    .sheet{ background:white; border: 2px solid #0b1220; border-radius: 18px; padding: 24px; box-shadow: 0 18px 55px rgba(0,0,0,.12); }
+    h1{ margin:0; font-size: 44px; letter-spacing:-.02em; }
+    .biz{ font-size: 28px; font-weight: 800; margin-top: 10px; }
+    .sub{ font-size: 18px; margin: 12px 0 18px; color:#334155; }
+    .grid{ display:grid; grid-template-columns: 1fr 320px; gap: 18px; align-items:center; }
+    @media (max-width: 820px){ .grid{ grid-template-columns:1fr; } h1{ font-size: 38px; } }
+    .box{ border: 2px dashed #0b1220; border-radius: 16px; padding: 16px; background: #fbfdff; }
+    .qr{ width: 100%; border-radius: 12px; border: 1px solid rgba(0,0,0,.12); }
+    .cta{ font-size: 18px; font-weight: 700; }
+    .steps{ margin-top: 12px; line-height:1.5; color:#334155; }
+    .pill{ display:inline-block; padding: 8px 12px; border-radius: 999px; background:#e2e8f0; font-weight:700; }
+    .nfc{ margin-top: 14px; font-size: 14px; color:#475569; }
+    .btn{ display:inline-block; padding: 10px 12px; border-radius: 12px; background:#0b1220; color:white; text-decoration:none; font-weight:800; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="noprint" style="display:flex; gap:10px; align-items:center; margin-bottom: 12px;">
+      <a class="btn" href="#" onclick="window.print(); return false;">Print</a>
+      <span class="pill">Tip: print on cardstock & tape by register</span>
+    </div>
+
+    <div class="sheet">
+      <h1>Tap or Scan</h1>
+      <div class="biz" id="biz">to leave a Google review</div>
+      <div class="sub" id="sub">Thank you — it helps a ton.</div>
+
+      <div class="grid">
+        <div class="box">
+          <div class="cta">1) Open your camera</div>
+          <div class="steps">2) Point at the QR code</div>
+          <div class="steps">3) Tap "Write a review"</div>
+          <div class="nfc"><b>NFC option:</b> just tap your phone on the sticker.</div>
+        </div>
+        <div class="box">
+          <img id="qr" class="qr" alt="QR Code" />
+          <div style="margin-top:10px; font-size: 12px; color:#64748b; word-break: break-all;" id="link"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const p = new URLSearchParams(location.search);
+  const biz = p.get("biz") || "Leave us a review";
+  const city = p.get("city") || "";
+  const review = p.get("review") || "";
+  const placeId = p.get("placeid") || "";
+
+  // Use CID format for review link
+  const reviewLink = review || (placeId ? `https://search.google.com/local/writereview?placeid=${encodeURIComponent(placeId)}` : "");
+  
+  document.getElementById("biz").textContent = biz;
+  document.getElementById("sub").textContent = city ? `Thanks for visiting in ${city} — quick review?` : `Thanks — quick review?`;
+  document.getElementById("link").textContent = reviewLink || "(No review link provided)";
+
+  // QR generation using QR Server API (free alternative to Google Charts)
+  const size = "400x400";
+  const qrUrl = reviewLink
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=${size}&data=${encodeURIComponent(reviewLink)}`
+    : "";
+  const img = document.getElementById("qr");
+  if (qrUrl) img.src = qrUrl;
+})();
+</script>
+</body>
+</html>

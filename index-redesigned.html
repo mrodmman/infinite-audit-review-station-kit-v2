@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Local Search Audit + Review Station</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root { 
+      --bg: #fafbfd; 
+      --card: #ffffff; 
+      --text: #0f172a; 
+      --muted: #64748b; 
+      --accent: #0ea5e9; 
+      --accent-soft: #e0f2fe;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --border: #e2e8f0;
+      --shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+      --shadow-lg: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #fafbfd 0%, #f1f5f9 100%);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 20px;
+    }
+    .wrap { 
+      max-width: 1100px; 
+      margin: 0 auto;
+    }
+    .header {
+      background: var(--card);
+      border-radius: 24px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, var(--accent-soft) 0%, transparent 70%);
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .header-content {
+      position: relative;
+      z-index: 1;
+    }
+    .badge { 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 6px;
+      padding: 6px 14px; 
+      border-radius: 100px; 
+      background: var(--accent-soft);
+      color: var(--accent); 
+      font-weight: 600; 
+      font-size: 13px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(14, 165, 233, 0.2);
+    }
+    .badge::before {
+      content: '●';
+      color: var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    h1 { 
+      font-family: 'Fraunces', serif;
+      font-size: clamp(32px, 5vw, 48px); 
+      font-weight: 800;
+      letter-spacing: -0.03em; 
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .subtitle { 
+      color: var(--muted); 
+      font-size: 16px;
+      font-weight: 500;
+    }
+    .timestamp {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 12px;
+      padding: 8px 12px;
+      background: var(--bg);
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .grid { 
+      display: grid; 
+      grid-template-columns: 1.4fr 1fr; 
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 900px) { 
+      .grid { grid-template-columns: 1fr; }
+      .header { padding: 24px; }
+    }
+    .card { 
+      background: var(--card); 
+      border: 1px solid var(--border); 
+      border-radius: 20px; 
+      padding: 28px;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+    }
+    .card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+    .card-title {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-title::before {
+      content: '';
+      width: 4px;
+      height: 24px;
+      background: linear-gradient(180deg, var(--accent) 0%, var(--success) 100%);
+      border-radius: 4px;
+    }
+    .business-image-container {
+      position: relative;
+      width: 100%;
+      height: 220px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--accent-soft) 0%, #f0f9ff 100%);
+      border: 2px solid var(--border);
+      display: none;
+    }
+    .business-image-container.loaded {
+      display: block;
+    }
+    .business-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .image-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px;
+      background: linear-gradient(to top, rgba(15, 23, 42, 0.8), transparent);
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .table { 
+      width: 100%; 
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-bottom: 20px;
+    }
+    .table thead {
+      background: var(--bg);
+    }
+    .table th { 
+      padding: 12px 16px; 
+      text-align: left;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 2px solid var(--border);
+    }
+    .table th:first-child {
+      border-radius: 12px 0 0 0;
+    }
+    .table th:last-child {
+      border-radius: 0 12px 0 0;
+    }
+    .table td { 
+      padding: 16px; 
+      font-weight: 500;
+      border-bottom: 1px solid var(--border);
+    }
+    .table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .table tbody tr {
+      transition: background 0.2s ease;
+    }
+    .table tbody tr:hover {
+      background: var(--bg);
+    }
+    .rank-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 40px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .rank-badge.top3 {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+    .rank-badge.top10 {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: white;
+    }
+    .rank-badge.other {
+      background: var(--border);
+      color: var(--muted);
+    }
+    .btns { 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .btn { 
+      cursor: pointer; 
+      text-decoration: none; 
+      display: inline-flex; 
+      align-items: center; 
+      justify-content: center; 
+      gap: 8px;
+      padding: 12px 20px; 
+      border-radius: 12px; 
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      color: var(--text); 
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
+      border-color: var(--accent);
+    }
+    .btn.primary { 
+      background: linear-gradient(135deg, var(--accent) 0%, #0284c7 100%);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+    }
+    .btn.primary:hover {
+      box-shadow: 0 8px 20px rgba(14, 165, 233, 0.4);
+    }
+    .btn.secondary {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: rgba(14, 165, 233, 0.3);
+    }
+    .tip { 
+      font-size: 13px; 
+      color: var(--muted);
+      line-height: 1.5;
+      padding: 16px;
+      background: var(--bg);
+      border-radius: 12px;
+      border-left: 3px solid var(--accent);
+    }
+    .tip strong {
+      color: var(--text);
+    }
+    .features {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 520px) { 
+      .features { grid-template-columns: 1fr; }
+    }
+    .feature {
+      padding: 16px;
+      background: var(--bg);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .feature-label {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .feature-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .cta-box {
+      padding: 20px;
+      background: linear-gradient(135deg, var(--accent-soft) 0%, #f0f9ff 100%);
+      border-radius: 16px;
+      border: 1px solid rgba(14, 165, 233, 0.2);
+      margin-bottom: 20px;
+    }
+    .cta-box strong {
+      font-family: 'Fraunces', serif;
+      font-size: 18px;
+      display: block;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+    .cta-box p {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0;
+    }
+    .footer {
+      margin-top: 12px;
+      padding: 12px;
+      background: #fef3c7;
+      border-radius: 10px;
+      color: #92400e;
+      font-size: 12px;
+      border: 1px solid #fde68a;
+    }
+    .footer strong {
+      color: #78350f;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div class="header-content">
+        <div class="badge">Live Google Maps Audit</div>
+        <h1 id="bizTitle">Local Search Audit</h1>
+        <p class="subtitle" id="subtitle">Real-time rankings from Google Maps search</p>
+        <div class="timestamp">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span id="dateNow"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div id="businessImageContainer" class="business-image-container">
+          <img id="businessImage" class="business-image" alt="Business photo" />
+          <div class="image-overlay" id="imageCaption"></div>
+        </div>
+        
+        <div class="card-title">Your Current Rankings</div>
+
+        <table class="table" id="rankTable">
+          <thead>
+            <tr><th>Search Term</th><th>Rank</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+        <div class="btns">
+          <a class="btn primary" id="reviewBtn" href="#" rel="noopener">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+            </svg>
+            Leave a Review
+          </a>
+          <a class="btn secondary" id="mapsBtn" href="#" rel="noopener">View on Maps</a>
+          <a class="btn" id="printBtn" href="#" rel="noopener">Print Sign</a>
+          <button class="btn" id="copyBtn" type="button">Copy Link</button>
+        </div>
+
+        <div class="tip">
+          <strong>Pro Tip:</strong> Place an NFC sticker or QR code near your checkout. Every review boosts your ranking and brings more customers through the door.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Review Station Package</div>
+        
+        <div class="features">
+          <div class="feature">
+            <div class="feature-label">Hardware</div>
+            <div class="feature-value">NFC + QR Station</div>
+          </div>
+          <div class="feature">
+            <div class="feature-label">Setup Time</div>
+            <div class="feature-value">~10 minutes</div>
+          </div>
+          <div class="feature">
+            <div class="feature-label">Destination</div>
+            <div class="feature-value">Direct Review Link</div>
+          </div>
+          <div class="feature">
+            <div class="feature-label">Includes</div>
+            <div class="feature-value">Custom Signage</div>
+          </div>
+        </div>
+
+        <div class="cta-box">
+          <strong>Want to rank in the top 3?</strong>
+          <p>We'll build a complete review collection + response system for you.</p>
+        </div>
+
+        <div class="btns">
+          <a class="btn primary" id="callBtn" href="#">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+            </svg>
+            Call / Text
+          </a>
+          <a class="btn" id="emailBtn" href="#">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+            Email
+          </a>
+        </div>
+
+        <div class="footer">
+          <strong>Note:</strong> Rankings update constantly. This is a snapshot from the time it was generated.
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const params = new URLSearchParams(location.search);
+
+  const biz = params.get("biz") || "Local Search Audit";
+  const city = params.get("city") || "";
+  const placeId = params.get("placeid") || "";
+  const mapsUrl = params.get("maps") || "";
+  const kwStr = params.get("kw") || "";
+  const rankStr = params.get("rank") || "";
+  const contact = params.get("contact") || "";
+  const email = params.get("email") || "";
+  const imageUrl = params.get("image") || "";
+
+  document.getElementById("dateNow").textContent = new Date().toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
+
+  const title = document.getElementById("bizTitle");
+  title.textContent = biz;
+
+  const subtitle = document.getElementById("subtitle");
+  subtitle.textContent = city ? `Live Google Maps search audit for ${city}` : "Real-time rankings from Google Maps search";
+
+  // Handle business image
+  if (imageUrl) {
+    const imgContainer = document.getElementById("businessImageContainer");
+    const img = document.getElementById("businessImage");
+    const caption = document.getElementById("imageCaption");
+    
+    img.src = imageUrl;
+    img.onload = () => {
+      imgContainer.classList.add("loaded");
+      caption.textContent = biz;
+    };
+    img.onerror = () => {
+      imgContainer.style.display = "none";
+    };
+  }
+
+  // Build table
+  const kws = kwStr ? kwStr.split(",").map(s => s.trim()).filter(Boolean) : [];
+  const ranks = rankStr ? rankStr.split(",").map(s => s.trim()).filter(Boolean) : [];
+  const tbody = document.querySelector("#rankTable tbody");
+  tbody.innerHTML = "";
+
+  if (!kws.length) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td colspan="2" style="text-align:center; color: var(--muted);">No keywords provided</td>`;
+    tbody.appendChild(tr);
+  } else {
+    kws.forEach((k, i) => {
+      const r = ranks[i] || "—";
+      const rankNum = parseInt(r);
+      let badgeClass = "other";
+      if (rankNum <= 3) badgeClass = "top3";
+      else if (rankNum <= 10) badgeClass = "top10";
+      
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${escapeHtml(k)}</td><td><span class="rank-badge ${badgeClass}">${escapeHtml(r)}</span></td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Links
+  const reviewLink = placeId ? `https://www.google.com/maps?cid=${encodeURIComponent(placeId)}` : "#";
+  const reviewsBtn = document.getElementById("reviewBtn");
+  reviewsBtn.href = reviewLink;
+  if (!placeId) reviewsBtn.classList.remove("primary");
+
+  const mapsBtn = document.getElementById("mapsBtn");
+  const printBtn = document.getElementById("printBtn");
+
+  mapsBtn.href = mapsUrl || (placeId ? `https://www.google.com/maps?cid=${encodeURIComponent(placeId)}` : "https://www.google.com/maps");
+  
+  const signUrl = new URL(location.origin + "/print-sign.html");
+  signUrl.searchParams.set("biz", biz);
+  if (city) signUrl.searchParams.set("city", city);
+  if (placeId) signUrl.searchParams.set("placeid", placeId);
+  signUrl.searchParams.set("review", reviewLink);
+  printBtn.href = signUrl.toString();
+
+  const copyBtn = document.getElementById("copyBtn");
+  copyBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(location.href);
+      copyBtn.textContent = "Copied!";
+      setTimeout(() => copyBtn.textContent = "Copy Link", 1400);
+    } catch(e) {
+      alert("Could not copy. Long-press the URL bar and copy manually.");
+    }
+  });
+
+  const callBtn = document.getElementById("callBtn");
+  callBtn.href = contact ? `tel:${contact}` : "#";
+  callBtn.textContent = contact ? `Call / Text ${contact}` : "Call / Text";
+
+  const emailBtn = document.getElementById("emailBtn");
+  emailBtn.href = email ? `mailto:${email}` : "#";
+  emailBtn.textContent = email ? `Email ${email}` : "Email";
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  }
+})();
+</script>
+</body>
+</html>
