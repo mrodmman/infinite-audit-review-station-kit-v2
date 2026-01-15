@@ -456,7 +456,6 @@
 
   const biz = params.get("biz") || "Local Search Audit";
   const city = params.get("city") || "";
-  const placeId = params.get("placeid") || "";
   const mapsUrl = params.get("maps") || "";
   const kwStr = params.get("kw") || "";
   const rankStr = params.get("rank") || "";
@@ -519,21 +518,20 @@
     });
   }
 
-  // Links
-  const reviewLink = placeId ? `https://www.google.com/maps?cid=${encodeURIComponent(placeId)}` : "#";
+  // Links - use the actual Maps URL for reviews
+  const reviewLink = mapsUrl || "#";
   const reviewsBtn = document.getElementById("reviewBtn");
   reviewsBtn.href = reviewLink;
-  if (!placeId) reviewsBtn.classList.remove("primary");
+  if (!mapsUrl) reviewsBtn.classList.remove("primary");
 
   const mapsBtn = document.getElementById("mapsBtn");
   const printBtn = document.getElementById("printBtn");
 
-  mapsBtn.href = mapsUrl || (placeId ? `https://www.google.com/maps?cid=${encodeURIComponent(placeId)}` : "https://www.google.com/maps");
+  mapsBtn.href = mapsUrl || "https://www.google.com/maps";
   
   const signUrl = new URL(location.origin + "/print-sign.html");
   signUrl.searchParams.set("biz", biz);
   if (city) signUrl.searchParams.set("city", city);
-  if (placeId) signUrl.searchParams.set("placeid", placeId);
   signUrl.searchParams.set("review", reviewLink);
   printBtn.href = signUrl.toString();
 
