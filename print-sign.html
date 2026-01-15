@@ -56,10 +56,9 @@
   const biz = p.get("biz") || "Leave us a review";
   const city = p.get("city") || "";
   const review = p.get("review") || "";
-  const placeId = p.get("placeid") || "";
 
-  // Use CID format for review link
-  const reviewLink = review || (placeId ? `https://search.google.com/local/writereview?placeid=${encodeURIComponent(placeId)}` : "");
+  // Use the Maps URL directly as the review link
+  const reviewLink = review;
   
   document.getElementById("biz").textContent = biz;
   document.getElementById("sub").textContent = city ? `Thanks for visiting in ${city} — quick review?` : `Thanks — quick review?`;
