@@ -374,7 +374,16 @@
           <div class="image-overlay" id="imageCaption"></div>
         </div>
 
-        <div class="card-title">Your Current Rankings</div>
+        <a class="btn secondary" id="mapsBtnTop" href="#" rel="noopener" style="margin-bottom:12px;">
+  📍 View on Google Maps
+</a>
+
+<div class="tip" style="margin-bottom:16px;">
+  <strong>Tip:</strong> Scroll the Maps page and find your business — the position number you see there matches your ranking below.
+</div>
+
+<div class="card-title">Your Current Rankings</div>
+
 
         <table class="table" id="rankTable">
           <thead>
@@ -384,13 +393,8 @@
         </table>
 
         <div class="btns">
-          <a class="btn primary" id="reviewBtn" href="#" rel="noopener">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
-            </svg>
-            Leave a Review
+        
           </a>
-          <a class="btn secondary" id="mapsBtn" href="#" rel="noopener">View on Maps</a>
           <a class="btn secondary" id="landingBtn" href="#" rel="noopener">View Landing</a>
           <a class="btn" id="printBtn" href="#" rel="noopener">Print Sign</a>
           <button class="btn" id="copyBtn" type="button">Copy Link</button>
@@ -527,11 +531,14 @@
   reviewsBtn.href = reviewLink;
   if (!mapsUrl) reviewsBtn.classList.remove("primary");
 
-  const mapsBtn = document.getElementById("mapsBtn");
+  const mapsBtnTop = document.getElementById("mapsBtnTop");
   const landingBtn = document.getElementById("landingBtn");
   const printBtn = document.getElementById("printBtn");
 
-  mapsBtn.href = mapsUrl || "https://www.google.com/maps";
+  if (mapsBtnTop) {
+  mapsBtnTop.href = mapsUrl || "https://www.google.com/maps";
+  }
+
 
   // Build landing URL (this is what the QR should point to)
   const landingUrl = new URL(location.origin + "/landing.html");
