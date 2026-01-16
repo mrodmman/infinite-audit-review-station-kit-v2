@@ -539,6 +539,8 @@
   if (city) landingUrl.searchParams.set("city", city);
   if (reviewLink && reviewLink !== "#") landingUrl.searchParams.set("review", reviewLink);
   if (imageUrl) landingUrl.searchParams.set("image", imageUrl);
+  if (menuUrl) landingUrl.searchParams.set("menu", menuUrl);
+
 
   // Owner can preview without scanning
   landingBtn.href = landingUrl.toString();
