@@ -454,9 +454,8 @@
       </div>
     </div>
   </div>
-
 <script>
-(function(){
+(function () {
   const params = new URLSearchParams(location.search);
 
   const biz = params.get("biz") || "Local Search Audit";
@@ -469,119 +468,141 @@
   const imageUrl = params.get("image") || "";
   const menuUrl = params.get("menu") || "";
 
+  // Helpers
+  const $ = (id) => document.getElementById(id);
+  const safeSetHref = (id, href) => {
+    const el = $(id);
+    if (el && href) el.href = href;
+  };
+  const escapeHtml = (s) =>
+    String(s ?? "").replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    }[c]));
 
-  document.getElementById("dateNow").textContent = new Date().toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  });
-
-  const title = document.getElementById("bizTitle");
-  title.textContent = biz;
-
-  const subtitle = document.getElementById("subtitle");
-  subtitle.textContent = city ? `Live Google Maps search audit for ${city}` : "Real-time rankings from Google Maps search";
-
-  // Handle business image
-  if (imageUrl) {
-    const imgContainer = document.getElementById("businessImageContainer");
-    const img = document.getElementById("businessImage");
-    const caption = document.getElementById("imageCaption");
-
-    img.src = imageUrl;
-    img.onload = () => {
-      imgContainer.classList.add("loaded");
-      caption.textContent = biz;
-    };
-    img.onerror = () => {
-      imgContainer.style.display = "none";
-    };
-  }
-
-  // Build table
-  const kws = kwStr ? kwStr.split(",").map(s => s.trim()).filter(Boolean) : [];
-  const ranks = rankStr ? rankStr.split(",").map(s => s.trim()).filter(Boolean) : [];
-  const tbody = document.querySelector("#rankTable tbody");
-  tbody.innerHTML = "";
-
-  if (!kws.length) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="2" style="text-align:center; color: var(--muted);">No keywords provided</td>`;
-    tbody.appendChild(tr);
-  } else {
-    kws.forEach((k, i) => {
-      const r = ranks[i] || "—";
-      const rankNum = parseInt(r);
-      let badgeClass = "other";
-      if (rankNum <= 3) badgeClass = "top3";
-      else if (rankNum <= 10) badgeClass = "top10";
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${escapeHtml(k)}</td><td><span class="rank-badge ${badgeClass}">${escapeHtml(r)}</span></td>`;
-      tbody.appendChild(tr);
+  // Header text
+  const dateNow = $("dateNow");
+  if (dateNow) {
+    dateNow.textContent = new Date().toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
     });
   }
 
-  // Links - use the actual Maps URL for reviews
-  const reviewLink = mapsUrl || "#";
-  const reviewsBtn = document.getElementById("reviewBtn");
-  reviewsBtn.href = reviewLink;
-  if (!mapsUrl) reviewsBtn.classList.remove("primary");
+  const title = $("bizTitle");
+  if (title) title.textContent = biz;
 
-  const mapsBtnTop = document.getElementById("mapsBtnTop");
-  const landingBtn = document.getElementById("landingBtn");
-  const printBtn = document.getElementById("printBtn");
+  const subtitle = $("subtitle");
+  if (subtitle) subtitle.textContent = city ? `Live Google Maps search audit for ${city}` : "Real-time rankings from Google Maps search";
 
-  if (mapsBtnTop) {
-  mapsBtnTop.href = mapsUrl || "https://www.google.com/maps";
+  // Business image (optional)
+  if (imageUrl) {
+    const imgContainer = $("businessImageContainer");
+    const img = $("businessImage");
+    const caption = $("imageCaption");
+    if (img && imgContainer) {
+      img.src = imageUrl;
+      img.onload = () => {
+        imgContainer.classList.add("loaded");
+        if (caption) caption.textContent = biz;
+      };
+      img.onerror = () => {
+        imgContainer.style.display = "none";
+      };
+    }
   }
 
+  // Rankings table
+  const kws = kwStr ? kwStr.split(",").map((s) => s.trim()).filter(Boolean) : [];
+  const ranks = rankStr ? rankStr.split(",").map((s) => s.trim()).filter(Boolean) : [];
+  const tbody = document.querySelector("#rankTable tbody");
+  if (tbody) {
+    tbody.innerHTML = "";
 
-  // Build landing URL (this is what the QR should point to)
+    if (!kws.length) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td colspan="2" style="text-align:center; color: var(--muted);">No keywords provided</td>`;
+      tbody.appendChild(tr);
+    } else {
+      kws.forEach((k, i) => {
+        const r = ranks[i] || "—";
+        const rankNum = parseInt(r, 10);
+        let badgeClass = "other";
+        if (!Number.isNaN(rankNum) && rankNum <= 3) badgeClass = "top3";
+        else if (!Number.isNaN(rankNum) && rankNum <= 10) badgeClass = "top10";
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${escapeHtml(k)}</td><td><span class="rank-badge ${badgeClass}">${escapeHtml(r)}</span></td>`;
+        tbody.appendChild(tr);
+      });
+    }
+  }
+
+  // ===== Links =====
+
+  // Single source of truth: maps link (used for "View on Maps" + also review link if you still have it)
+  const mapsFallback = "https://www.google.com/maps";
+  const reviewLink = mapsUrl || "#";
+
+  // If you still have a review button, keep it working (won't crash if missing)
+  safeSetHref("reviewBtn", reviewLink);
+
+  // You might have either mapsBtn OR mapsBtnTop depending on your edits
+  safeSetHref("mapsBtn", mapsUrl || mapsFallback);
+  safeSetHref("mapsBtnTop", mapsUrl || mapsFallback);
+
+  // Build landing URL (include menu so it stops saying "Menu coming soon")
   const landingUrl = new URL(location.origin + "/landing.html");
   landingUrl.searchParams.set("biz", biz);
   if (city) landingUrl.searchParams.set("city", city);
   if (reviewLink && reviewLink !== "#") landingUrl.searchParams.set("review", reviewLink);
   if (imageUrl) landingUrl.searchParams.set("image", imageUrl);
-  if (menuUrl) landingUrl.searchParams.set("menu", menuUrl);
+  if (menuUrl) landingUrl.searchParams.set("menu", menuUrl); // <-- IMPORTANT
 
+  safeSetHref("landingBtn", landingUrl.toString());
 
-  // Owner can preview without scanning
-  landingBtn.href = landingUrl.toString();
-
-  // Print-sign expects landing= (NOT review=)
+  // Print sign expects landing=
   const signUrl = new URL(location.origin + "/print-sign.html");
   signUrl.searchParams.set("biz", biz);
   if (city) signUrl.searchParams.set("city", city);
   signUrl.searchParams.set("landing", landingUrl.toString());
-  printBtn.href = signUrl.toString();
+  safeSetHref("printBtn", signUrl.toString());
 
-  const copyBtn = document.getElementById("copyBtn");
-  copyBtn.addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(location.href);
-      copyBtn.textContent = "Copied!";
-      setTimeout(() => copyBtn.textContent = "Copy Link", 1400);
-    } catch(e) {
-      alert("Could not copy. Long-press the URL bar and copy manually.");
-    }
-  });
+  // Copy
+  const copyBtn = $("copyBtn");
+  if (copyBtn) {
+    copyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(location.href);
+        copyBtn.textContent = "Copied!";
+        setTimeout(() => (copyBtn.textContent = "Copy Link"), 1400);
+      } catch (e) {
+        alert("Could not copy. Copy from the URL bar instead.");
+      }
+    });
+  }
 
-  const callBtn = document.getElementById("callBtn");
-  callBtn.href = contact ? `tel:${contact}` : "#";
-  callBtn.textContent = contact ? `Call / Text ${contact}` : "Call / Text";
+  // Contact buttons
+  const callBtn = $("callBtn");
+  if (callBtn) {
+    callBtn.href = contact ? `tel:${contact}` : "#";
+    callBtn.textContent = contact ? `Call / Text ${contact}` : "Call / Text";
+  }
 
-  const emailBtn = document.getElementById("emailBtn");
-  emailBtn.href = email ? `mailto:${email}` : "#";
-  emailBtn.textContent = email ? `Email ${email}` : "Email";
-
-  function escapeHtml(s){
-    return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  const emailBtn = $("emailBtn");
+  if (emailBtn) {
+    emailBtn.href = email ? `mailto:${email}` : "#";
+    emailBtn.textContent = email ? `Email ${email}` : "Email";
   }
 })();
 </script>
+
 </body>
 </html>
