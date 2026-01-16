@@ -173,10 +173,7 @@
       Tip: If you don’t see the stars right away, scroll just a little.
     </div>
 
-    <a id="quickRateBtn" class="quick-rate" href="#">
-      ⭐ Tap here to rate now
-    </a>
-  </div>
+  
 
   <div class="footer">Powered by Infinite Audit</div>
 </div>
@@ -226,15 +223,6 @@
     document.getElementById("reviewTile").href = review;
     document.getElementById("reviewHelp").style.display = "block";
 
-    // Attempt direct-write deep link
-    const quick = document.getElementById("quickRateBtn");
-    try {
-      const u = new URL(review);
-      u.searchParams.set("review", "1");
-      quick.href = u.toString();
-    } catch {
-      quick.href = review;
-    }
   } else {
     document.getElementById("reviewTile").style.display = "none";
   }
