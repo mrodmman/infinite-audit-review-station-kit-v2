@@ -326,7 +326,7 @@
     ? `Thanks for visiting in ${city}!` 
     : `Your feedback means everything`;
 
-  // QR generation using QR Server API
+  // QR generation using QR Server API - use the landing URL directly
   const qrUrl = landing
     ? `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(landing)}`
     : "";
