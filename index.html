@@ -8,12 +8,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    :root { 
-      --bg: #fafbfd; 
-      --card: #ffffff; 
-      --text: #0f172a; 
-      --muted: #64748b; 
-      --accent: #0ea5e9; 
+    :root {
+      --bg: #fafbfd;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --accent: #0ea5e9;
       --accent-soft: #e0f2fe;
       --success: #10b981;
       --warning: #f59e0b;
@@ -22,15 +22,15 @@
       --shadow-lg: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { 
+    body {
       font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       background: linear-gradient(135deg, #fafbfd 0%, #f1f5f9 100%);
       color: var(--text);
       line-height: 1.6;
       padding: 20px;
     }
-    .wrap { 
-      max-width: 1100px; 
+    .wrap {
+      max-width: 1100px;
       margin: 0 auto;
     }
     .header {
@@ -58,15 +58,15 @@
       position: relative;
       z-index: 1;
     }
-    .badge { 
-      display: inline-flex; 
-      align-items: center; 
+    .badge {
+      display: inline-flex;
+      align-items: center;
       gap: 6px;
-      padding: 6px 14px; 
-      border-radius: 100px; 
+      padding: 6px 14px;
+      border-radius: 100px;
       background: var(--accent-soft);
-      color: var(--accent); 
-      font-weight: 600; 
+      color: var(--accent);
+      font-weight: 600;
       font-size: 13px;
       margin-bottom: 16px;
       border: 1px solid rgba(14, 165, 233, 0.2);
@@ -80,16 +80,16 @@
       0%, 100% { opacity: 1; }
       50% { opacity: 0.4; }
     }
-    h1 { 
+    h1 {
       font-family: 'Fraunces', serif;
-      font-size: clamp(32px, 5vw, 48px); 
+      font-size: clamp(32px, 5vw, 48px);
       font-weight: 800;
-      letter-spacing: -0.03em; 
+      letter-spacing: -0.03em;
       margin-bottom: 8px;
       color: var(--text);
     }
-    .subtitle { 
-      color: var(--muted); 
+    .subtitle {
+      color: var(--muted);
       font-size: 16px;
       font-weight: 500;
     }
@@ -105,20 +105,20 @@
       color: var(--muted);
       border: 1px solid var(--border);
     }
-    .grid { 
-      display: grid; 
-      grid-template-columns: 1.4fr 1fr; 
+    .grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
       gap: 24px;
       margin-bottom: 24px;
     }
-    @media (max-width: 900px) { 
+    @media (max-width: 900px) {
       .grid { grid-template-columns: 1fr; }
       .header { padding: 24px; }
     }
-    .card { 
-      background: var(--card); 
-      border: 1px solid var(--border); 
-      border-radius: 20px; 
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
       padding: 28px;
       box-shadow: var(--shadow);
       transition: all 0.3s ease;
@@ -174,8 +174,8 @@
       font-size: 14px;
       font-weight: 600;
     }
-    .table { 
-      width: 100%; 
+    .table {
+      width: 100%;
       border-collapse: separate;
       border-spacing: 0;
       margin-bottom: 20px;
@@ -183,8 +183,8 @@
     .table thead {
       background: var(--bg);
     }
-    .table th { 
-      padding: 12px 16px; 
+    .table th {
+      padding: 12px 16px;
       text-align: left;
       color: var(--muted);
       font-size: 13px;
@@ -199,8 +199,8 @@
     .table th:last-child {
       border-radius: 0 12px 0 0;
     }
-    .table td { 
-      padding: 16px; 
+    .table td {
+      padding: 16px;
       font-weight: 500;
       border-bottom: 1px solid var(--border);
     }
@@ -235,24 +235,24 @@
       background: var(--border);
       color: var(--muted);
     }
-    .btns { 
-      display: flex; 
-      flex-wrap: wrap; 
+    .btns {
+      display: flex;
+      flex-wrap: wrap;
       gap: 10px;
       margin-bottom: 16px;
     }
-    .btn { 
-      cursor: pointer; 
-      text-decoration: none; 
-      display: inline-flex; 
-      align-items: center; 
-      justify-content: center; 
+    .btn {
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       gap: 8px;
-      padding: 12px 20px; 
-      border-radius: 12px; 
+      padding: 12px 20px;
+      border-radius: 12px;
       border: 1.5px solid var(--border);
       background: var(--card);
-      color: var(--text); 
+      color: var(--text);
       font-weight: 600;
       font-size: 14px;
       transition: all 0.2s ease;
@@ -263,7 +263,7 @@
       box-shadow: var(--shadow);
       border-color: var(--accent);
     }
-    .btn.primary { 
+    .btn.primary {
       background: linear-gradient(135deg, var(--accent) 0%, #0284c7 100%);
       color: white;
       border-color: transparent;
@@ -277,8 +277,8 @@
       color: var(--accent);
       border-color: rgba(14, 165, 233, 0.3);
     }
-    .tip { 
-      font-size: 13px; 
+    .tip {
+      font-size: 13px;
       color: var(--muted);
       line-height: 1.5;
       padding: 16px;
@@ -295,7 +295,7 @@
       gap: 12px;
       margin-bottom: 20px;
     }
-    @media (max-width: 520px) { 
+    @media (max-width: 520px) {
       .features { grid-template-columns: 1fr; }
     }
     .feature {
@@ -373,7 +373,7 @@
           <img id="businessImage" class="business-image" alt="Business photo" />
           <div class="image-overlay" id="imageCaption"></div>
         </div>
-        
+
         <div class="card-title">Your Current Rankings</div>
 
         <table class="table" id="rankTable">
@@ -391,6 +391,7 @@
             Leave a Review
           </a>
           <a class="btn secondary" id="mapsBtn" href="#" rel="noopener">View on Maps</a>
+          <a class="btn secondary" id="landingBtn" href="#" rel="noopener">View Landing</a>
           <a class="btn" id="printBtn" href="#" rel="noopener">Print Sign</a>
           <button class="btn" id="copyBtn" type="button">Copy Link</button>
         </div>
@@ -402,7 +403,7 @@
 
       <div class="card">
         <div class="card-title">Review Station Package</div>
-        
+
         <div class="features">
           <div class="feature">
             <div class="feature-label">Hardware</div>
@@ -483,7 +484,7 @@
     const imgContainer = document.getElementById("businessImageContainer");
     const img = document.getElementById("businessImage");
     const caption = document.getElementById("imageCaption");
-    
+
     img.src = imageUrl;
     img.onload = () => {
       imgContainer.classList.add("loaded");
@@ -511,7 +512,7 @@
       let badgeClass = "other";
       if (rankNum <= 3) badgeClass = "top3";
       else if (rankNum <= 10) badgeClass = "top10";
-      
+
       const tr = document.createElement("tr");
       tr.innerHTML = `<td>${escapeHtml(k)}</td><td><span class="rank-badge ${badgeClass}">${escapeHtml(r)}</span></td>`;
       tbody.appendChild(tr);
@@ -525,14 +526,26 @@
   if (!mapsUrl) reviewsBtn.classList.remove("primary");
 
   const mapsBtn = document.getElementById("mapsBtn");
+  const landingBtn = document.getElementById("landingBtn");
   const printBtn = document.getElementById("printBtn");
 
   mapsBtn.href = mapsUrl || "https://www.google.com/maps";
-  
+
+  // Build landing URL (this is what the QR should point to)
+  const landingUrl = new URL(location.origin + "/landing.html");
+  landingUrl.searchParams.set("biz", biz);
+  if (city) landingUrl.searchParams.set("city", city);
+  if (reviewLink && reviewLink !== "#") landingUrl.searchParams.set("review", reviewLink);
+  if (imageUrl) landingUrl.searchParams.set("image", imageUrl);
+
+  // Owner can preview without scanning
+  landingBtn.href = landingUrl.toString();
+
+  // Print-sign expects landing= (NOT review=)
   const signUrl = new URL(location.origin + "/print-sign.html");
   signUrl.searchParams.set("biz", biz);
   if (city) signUrl.searchParams.set("city", city);
-  signUrl.searchParams.set("review", reviewLink);
+  signUrl.searchParams.set("landing", landingUrl.toString());
   printBtn.href = signUrl.toString();
 
   const copyBtn = document.getElementById("copyBtn");
