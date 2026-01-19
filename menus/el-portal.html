@@ -1,0 +1,367 @@
+<!doctype html> 
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>El Portal Mexican Grill — Menu</title>
+  <meta name="description" content="Mobile menu for El Portal Mexican Grill" />
+  <style>
+    :root{
+      --bg: #fafbfd;
+      --card: #ffffff;
+      --card2:#f8fafc;
+      --text: #0f172a;
+      --muted:#64748b;
+      --line: rgba(15, 23, 42, 0.1);
+      --accent:#0ea5e9;
+      --accent2:#0284c7;
+      --shadow: 0 4px 12px rgba(0,0,0,.08);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background: linear-gradient(135deg, #fafbfd 0%, #f0f9ff 100%);
+      color:var(--text);
+      font: 16px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    .wrap{
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 18px 16px 56px;
+    }
+
+    /* Header */
+    .top{
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.85);
+      border-bottom: 1px solid var(--line);
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .top-inner{
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 14px 16px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content: space-between;
+    }
+    .brand{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      min-width: 0;
+    }
+    .brand h1{
+      margin:0;
+      font-size: 18px;
+      letter-spacing:.2px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .brand p{
+      margin:0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* Search */
+    .search{
+      width: 180px;
+      max-width: 45vw;
+      flex: 0 0 auto;
+      position: relative;
+    }
+    .search input{
+      width: 100%;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      outline: none;
+      font-size: 14px;
+    }
+    .search input:focus{
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    }
+    .search input::placeholder{color: var(--muted)}
+
+    /* Cards */
+    .section{
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+
+    details{
+      border-top: 1px solid var(--line);
+    }
+    details:first-child{border-top:none}
+    summary{
+      list-style:none;
+      cursor:pointer;
+      padding: 16px 14px;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 14px;
+      background: var(--card2);
+      transition: background 0.2s ease;
+    }
+    summary:hover{
+      background: var(--card);
+    }
+    summary::-webkit-details-marker{display:none}
+    .sum-left{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:0;
+    }
+    .cat-title{
+      font-size: 16px;
+      margin:0;
+      letter-spacing:.2px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight: 700;
+    }
+    .cat-meta{
+      color: var(--muted);
+      font-size: 12.5px;
+      margin:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
+    }
+    .chev{
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      display:grid;
+      place-items:center;
+      background: var(--card);
+      flex: 0 0 auto;
+      transition: transform .2s ease;
+    }
+    details[open] .chev{transform: rotate(180deg)}
+    .chev svg{color: var(--muted)}
+
+    .content{
+      padding: 6px 10px 12px;
+      background: var(--card);
+    }
+    .notes{
+      margin: 10px 6px 8px;
+      padding: 10px 12px;
+      border: 1px dashed rgba(14, 165, 233, 0.3);
+      background: rgba(14, 165, 233, 0.06);
+      border-radius: 14px;
+      color: var(--accent2);
+      font-size: 13px;
+    }
+    .notes ul{
+      margin: 0;
+      padding-left: 18px;
+    }
+    .notes li{margin: 4px 0; color: var(--text)}
+
+    .item{
+      display:flex;
+      align-items:flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 10px;
+      border-top: 1px solid var(--line);
+    }
+    .item:first-of-type{border-top:none}
+    .left{
+      min-width:0;
+      flex: 1 1 auto;
+    }
+    .name{
+      margin:0;
+      font-weight: 650;
+      letter-spacing:.15px;
+      font-size: 15px;
+    }
+    .desc{
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .price{
+      flex: 0 0 auto;
+      font-weight: 750;
+      color: var(--accent2);
+      font-variant-numeric: tabular-nums;
+      letter-spacing:.2px;
+      padding-left: 8px;
+      text-align:right;
+      min-width: 72px;
+    }
+    .subitems{
+      margin-top: 8px;
+      border-left: 2px solid rgba(14, 165, 233, 0.25);
+      padding-left: 10px;
+    }
+    .subitem{
+      display:flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 7px 0;
+    }
+    .subname{
+      margin:0;
+      font-size: 13.5px;
+      font-weight: 600;
+    }
+    .subprice{
+      flex: 0 0 auto;
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 13px;
+      padding-left: 6px;
+    }
+
+    .foot{
+      text-align:center;
+      margin-top: 28px;
+      padding: 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div class="top-inner">
+      <div class="brand">
+        <h1 id="bizName">El Portal Mexican Grill</h1>
+        <p id="bizTagline">12598 Mt. Mesa Rd. • Mt. Mesa • 760-379-2779</p>
+      </div>
+      <div class="search">
+        <input type="text" id="search" placeholder="Search..." aria-label="Search menu" />
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="section" id="menu"></div>
+    <div class="foot">
+      Menu subject to change • Prices may vary
+    </div>
+  </div>
+
+  <script>
+    const MENU = {
+      "businessName": "El Portal Mexican Grill",
+      "tagline": "12598 Mt. Mesa Rd. • Mt. Mesa • 760-379-2779",
+      "categories": [
+        {
+          "name": "Appetizers",
+          "notes": [],
+          "items": [
+            {"name": "El Portal Platter", "price": "", "description": "4 buffalo wings, 4 small taquitos, 4 small quesadillas, 4 small flautas, served with guacamole & sour cream."},
+            {"name": "Flautas or Taquitos", "price": "6 pc • 12 pc", "description": ""},
+            {"name": "Guacamole", "price": "", "description": "Rich blend of avocados served with flour tortilla chips, garnished with sour cream & diced tomatoes."},
+            {"name": "Chile Con Queso", "price": "", "description": "Jack cheese, ranchera sauce, & jalapeño peppers served with flour tortilla chips."},
+            {"name": "Buffalo Wings", "price": "6 pc • 12 pc", "description": ""},
+            {"name": "Nachos", "price": "", "description": "Crispy corn tortilla chips layered with choice of toppings & melted cheese. Options: Regular, Chile Verde, Chicken, Beef"},
+            {"name": "Quesadillas", "price": "", "description": "Flour tortilla grilled & filled with cheese, garnished with guacamole, sour cream, & tomatoes."}
+          ]
+        },
+        {
+          "name": "House Specialties",
+          "notes": ["Served with rice & beans, garnished with guacamole & pico de gallo."],
+          "items": [
+            {"name": "Las Fajitas", "price": "", "description": "Beef or Chicken marinated & grilled with spices, sautéed vegetables, onions, & tomatoes."},
+            {"name": "Chile Verde", "price": "", "description": "Tender, lean, boneless pork cubes simmered in green tomatillo sauce."},
+            {"name": "Carne Asada", "price": "", "description": "New York steak cooked your way. Served with a cheese enchilada."}
+          ]
+        },
+        {
+            "name": "Burritos",
+            "notes": ["Served with rice & beans."],
+            "items": [
+                {"name": "Burrito Verde", "price": "", "description": "Pork simmered in tomatillo, cilantro, and green peppers."},
+                {"name": "Burrito Grande", "price": "", "description": "Stuffed with choice of meat plus rice, beans, lettuce, pico de gallo, guacamole, cheese & sour cream."}
+            ]
+        }
+      ]
+    };
+
+    const $menu = document.getElementById("menu");
+    const $search = document.getElementById("search");
+
+    function escapeHtml(str){
+      return (str ?? "").toString().replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
+    }
+
+    function renderCategories(filterText=""){
+      const q = filterText.trim().toLowerCase();
+      $menu.innerHTML = "";
+      
+      MENU.categories.forEach((cat, idx) => {
+        const items = (cat.items || []).filter(it => {
+          if(!q) return true;
+          return (it.name + it.description).toLowerCase().includes(q);
+        });
+
+        if(q && items.length === 0) return;
+
+        const details = document.createElement("details");
+        if(q || idx === 0) details.open = true;
+
+        const summary = document.createElement("summary");
+        summary.innerHTML = `<div class="sum-left">
+            <p class="cat-title">${escapeHtml(cat.name)}</p>
+            <p class="cat-meta">${items.length} items</p>
+          </div>
+          <div class="chev">▼</div>`;
+
+        const content = document.createElement("div");
+        content.className = "content";
+
+        if(cat.notes.length){
+            content.innerHTML += `<div class="notes"><ul>${cat.notes.map(n => `<li>${n}</li>`).join('')}</ul></div>`;
+        }
+
+        items.forEach(it => {
+          content.innerHTML += `<div class="item">
+              <div class="left">
+                <p class="name">${escapeHtml(it.name)}</p>
+                <p class="desc">${escapeHtml(it.description)}</p>
+              </div>
+              <div class="price">${escapeHtml(it.price)}</div>
+            </div>`;
+        });
+
+        details.appendChild(summary);
+        details.appendChild(content);
+        $menu.appendChild(details);
+      });
+    }
+
+    renderCategories("");
+    $search.addEventListener("input", (e) => renderCategories(e.target.value));
+  </script>
+</body>
+</html>
