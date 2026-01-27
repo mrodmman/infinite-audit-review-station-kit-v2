@@ -1,0 +1,1003 @@
+{
+  "name": "Infinite Audit - Review Station Pitch (Sheets → Maps Rank → Audit Link) - FIXED",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1lhNywvyBM0kr7nul9ekFoWEc3kEtdXgECi9zik6XWAU",
+          "mode": "list",
+          "cachedResultName": "N8N Greview",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lhNywvyBM0kr7nul9ekFoWEc3kEtdXgECi9zik6XWAU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "input",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lhNywvyBM0kr7nul9ekFoWEc3kEtdXgECi9zik6XWAU/edit#gid=0"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "id": "75e0f804-5d18-48af-aacd-398e07b083b3",
+      "name": "Google Sheets Trigger",
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        48
+      ],
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "KSzLSsfRDoFPUdGr",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "Business Name",
+              "value": "={{$json[\"Business Name\"]}}"
+            },
+            {
+              "name": "City",
+              "value": "={{$json[\"City\"]}}"
+            },
+            {
+              "name": "KW1",
+              "value": "={{$json[\"KW1\"]}}"
+            },
+            {
+              "name": "KW2",
+              "value": "={{$json[\"KW2\"]}}"
+            },
+            {
+              "name": "KW3",
+              "value": "={{$json[\"KW3\"]}}"
+            }
+          ],
+          "number": [
+            {
+              "name": "row_number",
+              "value": "={{ Number(String($json[\"row_number\"]).replace(/[^\\d]/g, \"\")) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "48e0ccd9-53ad-4f35-910f-53cfca0b64f8",
+      "name": "Normalize Input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const getClean = (v) => (v ?? '').toString().trim();\n\nconst pairs = [\n  { k: $json.KW1, i: 1 },\n  { k: $json.KW2, i: 2 },\n  { k: $json.KW3, i: 3 },\n].filter(x => getClean(x.k));\n\nreturn pairs.map(x => ({\n  json: {\n    'Business Name': getClean($json['Business Name']),\n    'City': getClean($json['City']),\n    'Keyword': getClean(x.k),\n    kwIndex: x.i,\n    row_number: $json.row_number,\n  }\n}));"
+      },
+      "id": "bfa1167f-749e-4728-9958-b2910d2e1c17",
+      "name": "Explode Keywords",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        32,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 30,
+        "unit": "seconds"
+      },
+      "id": "77e69ab6-f530-44f3-9032-f95c549236fd",
+      "name": "Wait 30s (anti-block)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        480,
+        48
+      ],
+      "webhookId": "02b48bb3-5553-4212-bbac-cad8b229d0ca"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json.data ?? {};\nconst kwIndex = Number(data.kwIndex ?? $json.kwIndex ?? 1);\n\nconst cleanDigits = (v) => {\n  const s = String(v ?? \"\");\n  const digits = s.replace(/[^\\d]/g, \"\");\n  return digits ? Number(digits) : null;\n};\n\nconst out = {\n  row_number: cleanDigits(data.row_number ?? $json.row_number ?? $json.rowNumber ?? $json[\"row_number\"]),\n};\n\nconst url = data.mapsUrl ? String(data.mapsUrl).trim() : null;\nconst rank = data.rank ?? null;\n\n// Store the actual Maps URL (from the clicked listing)\nif (url && kwIndex === 1) {\n  out[\"Maps URL\"] = url;\n}\n\nif (kwIndex === 1) {\n  if (url) out[\"Maps URL KW1\"] = url;\n  out[\"Rank KW1\"] = rank;\n}\nif (kwIndex === 2) {\n  if (url) out[\"Maps URL KW2\"] = url;\n  out[\"Rank KW2\"] = rank;\n}\nif (kwIndex === 3) {\n  if (url) out[\"Maps URL KW3\"] = url;\n  out[\"Rank KW3\"] = rank;\n}\n\nreturn [{ json: out }];"
+      },
+      "id": "d7cf6557-407c-4259-89b2-5657222314f8",
+      "name": "Assemble Links + Row Update Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        928,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1lhNywvyBM0kr7nul9ekFoWEc3kEtdXgECi9zik6XWAU",
+          "mode": "list",
+          "cachedResultName": "N8N Greview",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lhNywvyBM0kr7nul9ekFoWEc3kEtdXgECi9zik6XWAU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "input",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lhNywvyBM0kr7nul9ekFoWEc3kEtdXgECi9zik6XWAU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Business Name",
+              "displayName": "Business Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "City",
+              "displayName": "City",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "KW1",
+              "displayName": "KW1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "KW2",
+              "displayName": "KW2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "KW3",
+              "displayName": "KW3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Image URL",
+              "displayName": "Image URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Menu URL",
+              "displayName": "Menu URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Place ID",
+              "displayName": "Place ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Maps URL KW1",
+              "displayName": "Maps URL KW1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Maps URL KW2",
+              "displayName": "Maps URL KW2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Maps URL KW3",
+              "displayName": "Maps URL KW3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Rank KW1",
+              "displayName": "Rank KW1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Rank KW2",
+              "displayName": "Rank KW2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Rank KW3",
+              "displayName": "Rank KW3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Audit Link",
+              "displayName": "Audit Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Landing URL",
+              "displayName": "Landing URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Review Link",
+              "displayName": "Review Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "QR Image URL",
+              "displayName": "QR Image URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Printable Sign URL",
+              "displayName": "Printable Sign URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Maps URL",
+              "displayName": "Maps URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "c6ce0214-d126-41bd-932d-683bc73ed62b",
+      "name": "Google Sheets Update Row",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        1168,
+        32
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "2t7JGCVC7U3zAkqo",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        224,
+        48
+      ],
+      "id": "4307ddc4-0a06-47e7-99e8-a2269243b774",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://production-sfo.browserless.io/function",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "token",
+              "value": "2TnS6jQlu04FRQm2244fedb47ab232159caae36149da6c3a2"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "code",
+              "value": "export default async function ({ page, context }) {   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));    const clean = (s) => (s ?? \"\").toString().replace(/\\s+/g, \" \").trim();    const normalizeForMatch = (s) =>     clean(s)       .toLowerCase()       .replace(/'/g, \"'\")       .replace(/'s\\b/g, \"\")       .replace(/[^a-z0-9 ]/g, \" \")       .replace(/\\s+/g, \" \")       .trim();    const tokens = (s) =>     normalizeForMatch(s)       .split(\" \")       .filter(Boolean)       .map((t) => (t.length > 3 ? t.replace(/s\\b/g, \"\") : t));    const isMatch = (listingName, targetName) => {     const a = normalizeForMatch(listingName);     const b = normalizeForMatch(targetName);     if (!a || !b) return false;     if (a.includes(b) || b.includes(a)) return true;      const aTokens = new Set(tokens(a));     const bTokens = new Set(tokens(b));      let overlap = 0;     for (const t of bTokens) if (aTokens.has(t)) overlap++;      const required = bTokens.size >= 2 ? 2 : 1;     return overlap >= required;   };    const businessName = clean(context.businessName);   const city = clean(context.city);   const keyword = clean(context.keyword);   const row_number = clean(context.row_number);   const kwIndex = Number(String(context.kwIndex ?? 1).replace(/[^\\d]/g, \"\") || 1);    const q = encodeURIComponent(`${keyword} near ${city}`);   const searchUrl = `https://www.google.com/maps/search/${q}`;    await page.goto(searchUrl, { waitUntil: \"domcontentloaded\", timeout: 60000 });   await sleep(3500);    await page.waitForSelector('[role=\"feed\"]', { timeout: 30000 });    let seen = 0;   let foundRank = null;   let foundPlaceId = null;   let detailsUrl = \"\";    const MAX_SCAN = 200;   const MAX_PASSES = 40;    const debug_names = [];   let debug_hitCandidate = \"\";   let debug_lastSeenName = \"\";   let debug_clickedUrl = \"\";   let debug_extractedIds = {};    for (let pass = 0; pass < MAX_PASSES && seen < MAX_SCAN; pass++) {     const cards = await page.$$('[role=\"feed\"] [role=\"article\"]');      for (let i = 0; i < cards.length && seen < MAX_SCAN; i++) {       const title = await page.evaluate((el) => {         const a =           el.querySelector('a[href*=\"/maps/place/\"][aria-label]') ||           el.querySelector('a[href*=\"/maps/place/\"]');         if (a) return a.getAttribute(\"aria-label\") || a.textContent || \"\";          const aria = el.getAttribute(\"aria-label\");         if (aria) return aria;          const h = el.querySelector(\"h1, h2, h3\");         if (h) return h.textContent || \"\";          const anyA = el.querySelector(\"a\");         if (anyA) return anyA.textContent || \"\";          return el.textContent || \"\";       }, cards[i]);        const listingName = clean(title);       if (!listingName) continue;        debug_lastSeenName = listingName;       if (debug_names.length < 60) debug_names.push(listingName);        seen++;        if (isMatch(listingName, businessName)) {         foundRank = seen;         debug_hitCandidate = listingName;                  try {           await cards[i].click();           await sleep(4000);                     detailsUrl = page.url();           debug_clickedUrl = detailsUrl;                     const chijMatch = detailsUrl.match(/(ChIJ[\\w-]{10,})/);           const ftidMatch = detailsUrl.match(/0x([a-f0-9]+):0x([a-f0-9]+)/);           const ludocidMatch = detailsUrl.match(/[?&]ludocid=(\\d+)/);           const cidMatch = detailsUrl.match(/[?&]cid=(\\d+)/);                     debug_extractedIds = {             chij: chijMatch ? chijMatch[1] : null,             ftid: ftidMatch ? ftidMatch[0] : null,             ludocid: ludocidMatch ? ludocidMatch[1] : null,             cid: cidMatch ? cidMatch[1] : null           };                     if (chijMatch) {             foundPlaceId = chijMatch[1];           } else if (cidMatch) {             foundPlaceId = cidMatch[1];           } else if (ludocidMatch) {             foundPlaceId = ludocidMatch[1];           } else if (ftidMatch) {             foundPlaceId = parseInt(ftidMatch[2], 16).toString();           }         } catch (e) {           debug_clickedUrl = \"Click failed: \" + e.message;         }                  break;       }     }      if (foundRank !== null) break;      await page.evaluate(() => {       const feed = document.querySelector('[role=\"feed\"]');       if (feed) feed.scrollBy(0, 2200);     });      await sleep(3000);   }    return {     data: {       kwIndex,       keyword,       businessName,       city,       row_number,       rank: foundRank,       placeId: foundPlaceId,       scanned: seen,       mapsUrl: detailsUrl || searchUrl,       debug_hitCandidate,       debug_lastSeenName,       debug_names,       debug_clickedUrl,       debug_extractedIds     },     type: \"application/json\"   }; }"
+            },
+            {
+              "name": "context.businessName",
+              "value": "={{ String($json[\"Business Name\"] || \"\").trim() }}"
+            },
+            {
+              "name": "context.city",
+              "value": "={{ String($json[\"City\"] || \"\").trim() }}"
+            },
+            {
+              "name": "context.keyword",
+              "value": "={{ String($json[\"Keyword\"] || \"\").trim() }}"
+            },
+            {
+              "name": "context.row_number",
+              "value": "={{ Number(String($json.row_number).replace(/[^\\d]/g,'')) }}\n"
+            },
+            {
+              "name": "context.kwIndex",
+              "value": "={{ Number(String($json.kwIndex).replace(/[^\\d]/g,'')) }}\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        704,
+        48
+      ],
+      "id": "960bb12c-85c0-450c-9c28-5e7eb3c58611",
+      "name": "Browserless function"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "abaf307a-ad0e-45e4-b0ea-ce2230bbadef",
+              "leftValue": "Business Name",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "7594fa30-a4bf-4eb4-944f-b810a13c10a3",
+              "leftValue": "City",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -192,
+        48
+      ],
+      "id": "d84a8f46-dd1c-49f2-ae2f-6ae2157cb794",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "// build audit link + hyperlink wrapper (n8n v2+ compatible)\n\nconst enc = encodeURIComponent;\nconst base = \"https://infinite-audit-review-station-kit-v2.pages.dev/\";\nconst auditBase = base;\nconst landingBase = base + \"landing.html\";\nconst printBase = base + \"print-sign.html\";\n\n// Pull fields\nreturn items.map(item => {\n\n  const biz = item.json[\"Business Name\"] || \"\";\n  const city = item.json[\"City\"] || \"\";\n  const phone = item.json[\"Phone\"] || \"\";\n  const email = item.json[\"Email\"] || \"\";\n  const imageUrl = item.json[\"Image URL\"] || \"\";\n  const menuUrl = item.json[\"Menu URL\"] || \"\";\n\n  const mapsUrl =\n    item.json[\"Maps URL\"] ||\n    item.json[\"Maps URL KW1\"] ||\n    \"\";\n\n  const kws = [\n    item.json[\"KW1\"],\n    item.json[\"KW2\"],\n    item.json[\"KW3\"],\n  ].filter(Boolean).join(\",\");\n\n  const ranks = [\n    item.json[\"Rank KW1\"],\n    item.json[\"Rank KW2\"],\n    item.json[\"Rank KW3\"],\n  ].filter(v => v !== undefined && v !== null).join(\",\");\n\n  // -----------------------\n  // Build RAW URLs\n  // -----------------------\n\n  let audit =\n    `${auditBase}?biz=${enc(biz)}` +\n    `&city=${enc(city)}` +\n    `&maps=${enc(mapsUrl)}` +\n    `&kw=${enc(kws)}` +\n    `&rank=${enc(ranks)}`;\n\n  if (phone) audit += `&contact=${enc(phone)}`;\n  if (email) audit += `&email=${enc(email)}`;\n  if (imageUrl) audit += `&image=${enc(imageUrl)}`;\n  if (menuUrl) audit += `&menu=${enc(menuUrl)}`;\n\n  const landing =\n    `${landingBase}?biz=${enc(biz)}` +\n    `&city=${enc(city)}` +\n    (mapsUrl ? `&review=${enc(mapsUrl)}` : \"\") +\n    (imageUrl ? `&image=${enc(imageUrl)}` : \"\") +\n    (menuUrl ? `&menu=${enc(menuUrl)}` : \"\");\n\n  const print =\n    `${printBase}?biz=${enc(biz)}` +\n    `&city=${enc(city)}` +\n    `&landing=${enc(landing)}`;\n\n  const qr =\n    `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${enc(landing)}`;\n\n  const review = mapsUrl || \"\";\n\n  // -----------------------\n  // Hyperlink Wrapper\n  // -----------------------\n\n  const H = (url, label) =>\n    `=HYPERLINK(\"${String(url || \"\").replace(/\"/g, '\"\"')}\",\"${label}\")`;\n\n  item.json[\"Audit Link\"] = audit ? H(audit, \"Open Audit\") : \"\";\n  item.json[\"Landing URL\"] = landing ? H(landing, \"View Landing\") : \"\";\n  item.json[\"Printable Sign URL\"] = print ? H(print, \"Printable Sign\") : \"\";\n  item.json[\"QR Image URL\"] = qr ? H(qr, \"QR Image\") : \"\";\n  item.json[\"Review Link\"] = review ? H(review, \"Open Maps\") : \"\";\n\n  return item;\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        -288
+      ],
+      "id": "811b93d6-71a2-481c-a715-b4eca1f2a0d8",
+      "name": "build audit link"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1lhNywvyBM0kr7nul9ekFoWEc3kEtdXgECi9zik6XWAU",
+          "mode": "list",
+          "cachedResultName": "N8N Greview",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lhNywvyBM0kr7nul9ekFoWEc3kEtdXgECi9zik6XWAU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "input",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lhNywvyBM0kr7nul9ekFoWEc3kEtdXgECi9zik6XWAU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Business Name",
+              "displayName": "Business Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "City",
+              "displayName": "City",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "KW1",
+              "displayName": "KW1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "KW2",
+              "displayName": "KW2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "KW3",
+              "displayName": "KW3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Image URL",
+              "displayName": "Image URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Menu URL",
+              "displayName": "Menu URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Place ID",
+              "displayName": "Place ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Maps URL KW1",
+              "displayName": "Maps URL KW1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Maps URL KW2",
+              "displayName": "Maps URL KW2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Maps URL KW3",
+              "displayName": "Maps URL KW3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Rank KW1",
+              "displayName": "Rank KW1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Rank KW2",
+              "displayName": "Rank KW2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Rank KW3",
+              "displayName": "Rank KW3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Audit Link",
+              "displayName": "Audit Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Landing URL",
+              "displayName": "Landing URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Review Link",
+              "displayName": "Review Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "QR Image URL",
+              "displayName": "QR Image URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Printable Sign URL",
+              "displayName": "Printable Sign URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Maps URL",
+              "displayName": "Maps URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED"
+        }
+      },
+      "id": "6a27b60e-2842-419c-b912-ebec012b1dfa",
+      "name": "Google Sheets Update Row1",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        800,
+        -304
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "2t7JGCVC7U3zAkqo",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1lhNywvyBM0kr7nul9ekFoWEc3kEtdXgECi9zik6XWAU",
+          "mode": "list",
+          "cachedResultName": "N8N Greview",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lhNywvyBM0kr7nul9ekFoWEc3kEtdXgECi9zik6XWAU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "input",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lhNywvyBM0kr7nul9ekFoWEc3kEtdXgECi9zik6XWAU/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "row_number",
+              "lookupValue": "={{ $json.row_number }}"
+            }
+          ]
+        },
+        "combineFilters": "AND",
+        "options": {}
+      },
+      "id": "827e8b6e-01b3-4ad9-937b-cc22bcba185a",
+      "name": "Fetch Row For Audit",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        336,
+        -288
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "2t7JGCVC7U3zAkqo",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Takes the 3 Done-branch items (KW1/KW2/KW3 updates) and returns ONE clean item.\n\nconst items = $input.all().map(i => i.json);\n\n// Get row_number from first item that has it\nconst rawRow = items.find(x => x.row_number != null)?.row_number ?? \"\";\nconst row_number = Number(String(rawRow).trim());\n\n// Merge all fields from the 3 items into one object\nconst merged = items.reduce((acc, cur) => Object.assign(acc, cur), {});\n\n// Force the row_number to be clean + numeric\nmerged.row_number = row_number;\n\nreturn [{ json: merged }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        -304
+      ],
+      "id": "8987a284-6486-4ad4-8b4c-1a142c1038af",
+      "name": "Collapse Done + Clean Row"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Input": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Explode Keywords": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 30s (anti-block)": {
+      "main": [
+        [
+          {
+            "node": "Browserless function",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assemble Links + Row Update Payload": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets Update Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Collapse Done + Clean Row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 30s (anti-block)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Browserless function": {
+      "main": [
+        [
+          {
+            "node": "Assemble Links + Row Update Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets Update Row": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Explode Keywords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "build audit link": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets Update Row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Row For Audit": {
+      "main": [
+        [
+          {
+            "node": "build audit link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collapse Done + Clean Row": {
+      "main": [
+        [
+          {
+            "node": "Fetch Row For Audit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "5a817a33-5748-48ce-98a2-6018fd4bc8ca",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "84cef58968269c1b21e19383c6441f674bc6bef29a76141f52105150f5e8d1d5"
+  },
+  "id": "9duaMTlnNWZcW6poGsYb1",
+  "tags": []
+}
