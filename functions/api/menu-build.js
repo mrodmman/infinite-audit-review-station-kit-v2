@@ -15,19 +15,51 @@ export async function onRequestPost(context) {
     );
   }
 
-  let payload;
-  try {
-    payload = await request.json();
-  } catch (error) {
-    return new Response(JSON.stringify({ error: "Invalid JSON payload" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
+  let imageUrl = "";
+  let bizName = "Restaurant";
+  let slug = "";
 
-  const imageUrl = payload.imageUrl;
-  const bizName = payload.bizName || "Restaurant";
-  const slug = payload.slug;
+  const contentType = request.headers.get("Content-Type") || "";
+  if (contentType.includes("multipart/form-data")) {
+    const formData = await request.formData();
+    const upload = formData.get("menuImage");
+    imageUrl = (formData.get("imageUrl") || "").toString().trim();
+    bizName = (formData.get("bizName") || bizName).toString().trim() || bizName;
+    slug = (formData.get("slug") || "").toString().trim();
+
+    if (upload && typeof upload === "object" && typeof upload.arrayBuffer === "function") {
+      if (!env.R2_BUCKET || !env.R2_PUBLIC_BASE) {
+        return new Response(JSON.stringify({ error: "Missing R2 configuration. Check env vars." }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      const uploadName = (upload.name || "menu-image").replace(/[^a-zA-Z0-9._-]+/g, "-");
+      const safeSlug = slug || "menu";
+      const key = `menu-uploads/${safeSlug}-${Date.now()}-${uploadName}`;
+      const buffer = await upload.arrayBuffer();
+      await env.R2_BUCKET.put(key, buffer, {
+        httpMetadata: { contentType: upload.type || "application/octet-stream" },
+      });
+      const base = env.R2_PUBLIC_BASE.replace(/\/+$/, "");
+      imageUrl = `${base}/${key}`;
+    }
+  } else {
+    let payload;
+    try {
+      payload = await request.json();
+    } catch (error) {
+      return new Response(JSON.stringify({ error: "Invalid JSON payload" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    imageUrl = payload.imageUrl;
+    bizName = payload.bizName || bizName;
+    slug = payload.slug;
+  }
 
   if (!imageUrl || !slug) {
     return new Response(JSON.stringify({ error: "imageUrl and slug are required" }), {
