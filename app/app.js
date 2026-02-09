@@ -15,9 +15,22 @@ const openPrintBtn = document.getElementById("open-print");
 const copyLinksBtn = document.getElementById("copy-links");
 const qrWrapper = document.getElementById("qr-wrapper");
 const qrImage = document.getElementById("qr-image");
+const menuImageInput = document.getElementById("menu-image-url");
+const menuSlugInput = document.getElementById("menu-slug");
+const generateMenuBtn = document.getElementById("generate-menu");
+const menuStatus = document.getElementById("menu-status");
 
 const STORAGE_KEY = "auditDashboardRuns";
 const MAX_HISTORY = 20;
+
+// Helper: quick slugify for menu filenames.
+const slugify = (value) =>
+  (value || "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
 // Helper: safely parse stored JSON or return an empty array.
 const readHistory = () => {
@@ -115,6 +128,68 @@ const setLoading = (isLoading) => {
     emptyStateEl.classList.add("hidden");
   }
 };
+
+// Update menu automation status text.
+const setMenuStatus = (message, tone = "info") => {
+  menuStatus.textContent = message;
+  menuStatus.classList.remove("text-emerald-300", "text-rose-300", "text-slate-400");
+  if (tone === "success") menuStatus.classList.add("text-emerald-300");
+  else if (tone === "error") menuStatus.classList.add("text-rose-300");
+  else menuStatus.classList.add("text-slate-400");
+};
+
+// Menu automation handler: generate menu HTML and save to /menus via GitHub API.
+generateMenuBtn.addEventListener("click", async () => {
+  const imageUrl = menuImageInput.value.trim();
+  const bizName = form.querySelector("[name=\"biz\"]")?.value.trim();
+  const slug = menuSlugInput.value.trim() || slugify(bizName);
+
+  if (!imageUrl) {
+    setMenuStatus("Add a menu image URL first.", "error");
+    return;
+  }
+
+  if (!slug) {
+    setMenuStatus("Add a menu slug or business name.", "error");
+    return;
+  }
+
+  try {
+    generateMenuBtn.disabled = true;
+    generateMenuBtn.textContent = "Generating...";
+    setMenuStatus("Generating menu with AI and saving to GitHub...");
+
+    const response = await fetch("/api/menu-build", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        imageUrl,
+        bizName,
+        slug,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Menu generation failed with ${response.status}`);
+    }
+
+    const result = await response.json();
+    const menuField = form.querySelector("[name=\"menu\"]");
+    if (menuField && result.menuUrl) {
+      menuField.value = result.menuUrl;
+    }
+
+    setMenuStatus(`Menu saved: ${result.menuUrl}`, "success");
+  } catch (error) {
+    console.error(error);
+    setMenuStatus("Menu generation failed. Check the API keys and GitHub settings.", "error");
+  } finally {
+    generateMenuBtn.disabled = false;
+    generateMenuBtn.textContent = "Generate Menu";
+  }
+});
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
