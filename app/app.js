@@ -16,6 +16,7 @@ const copyLinksBtn = document.getElementById("copy-links");
 const qrWrapper = document.getElementById("qr-wrapper");
 const qrImage = document.getElementById("qr-image");
 const menuImageInput = document.getElementById("menu-image-url");
+const menuImageFileInput = document.getElementById("menu-image-file");
 const menuSlugInput = document.getElementById("menu-slug");
 const generateMenuBtn = document.getElementById("generate-menu");
 const menuStatus = document.getElementById("menu-status");
@@ -141,11 +142,12 @@ const setMenuStatus = (message, tone = "info") => {
 // Menu automation handler: generate menu HTML and save to /menus via GitHub API.
 generateMenuBtn.addEventListener("click", async () => {
   const imageUrl = menuImageInput.value.trim();
+  const imageFile = menuImageFileInput?.files?.[0];
   const bizName = form.querySelector("[name=\"biz\"]")?.value.trim();
   const slug = menuSlugInput.value.trim() || slugify(bizName);
 
-  if (!imageUrl) {
-    setMenuStatus("Add a menu image URL first.", "error");
+  if (!imageUrl && !imageFile) {
+    setMenuStatus("Add a menu image URL or upload a file.", "error");
     return;
   }
 
@@ -159,17 +161,30 @@ generateMenuBtn.addEventListener("click", async () => {
     generateMenuBtn.textContent = "Generating...";
     setMenuStatus("Generating menu with AI and saving to GitHub...");
 
-    const response = await fetch("/api/menu-build", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        imageUrl,
-        bizName,
-        slug,
-      }),
-    });
+    let response;
+    if (imageFile) {
+      const formData = new FormData();
+      formData.append("menuImage", imageFile);
+      formData.append("bizName", bizName || "");
+      formData.append("slug", slug);
+      if (imageUrl) formData.append("imageUrl", imageUrl);
+      response = await fetch("/api/menu-build", {
+        method: "POST",
+        body: formData,
+      });
+    } else {
+      response = await fetch("/api/menu-build", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          imageUrl,
+          bizName,
+          slug,
+        }),
+      });
+    }
 
     if (!response.ok) {
       throw new Error(`Menu generation failed with ${response.status}`);
