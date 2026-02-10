@@ -139,6 +139,26 @@ const setMenuStatus = (message, tone = "info") => {
   else menuStatus.classList.add("text-slate-400");
 };
 
+// Helper: best-effort JSON parser for error responses.
+const parseJsonSafely = async (response) => {
+  const text = await response.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { raw: text };
+  }
+};
+
+const formatAuditError = (status, debugId, body) => {
+  const bits = [`Audit failed (${status})`];
+  if (body?.error) bits.push(body.error);
+  if (body?.webhookStatus) bits.push(`Webhook status: ${body.webhookStatus}`);
+  if (body?.details) bits.push(`Details: ${body.details}`);
+  if (debugId) bits.push(`Debug ID: ${debugId}`);
+  return bits.join(" • ");
+};
+
 // Menu automation handler: generate menu HTML and save to /menus via GitHub API.
 generateMenuBtn.addEventListener("click", async () => {
   const imageUrl = menuImageInput.value.trim();
@@ -223,8 +243,11 @@ form.addEventListener("submit", async (event) => {
       body: JSON.stringify(payload),
     });
 
+    const debugId = response.headers.get("x-debug-id");
+
     if (!response.ok) {
-      throw new Error(`Audit failed with ${response.status}`);
+      const errorBody = await parseJsonSafely(response);
+      throw new Error(formatAuditError(response.status, debugId, errorBody));
     }
 
     const result = await response.json();
@@ -246,7 +269,7 @@ form.addEventListener("submit", async (event) => {
     renderHistory();
   } catch (error) {
     console.error(error);
-    emptyStateEl.textContent = "Audit failed. Please check the webhook configuration.";
+    emptyStateEl.textContent = error?.message || "Audit failed. Please check the webhook configuration.";
     emptyStateEl.classList.remove("hidden");
   } finally {
     setLoading(false);
