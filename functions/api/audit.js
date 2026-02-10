@@ -1,8 +1,20 @@
 // Cloudflare Pages Function: forwards audit payloads to an n8n webhook.
 export async function onRequestPost(context) {
   const { request, env } = context;
-  const WEBHOOK_URL = "https://n8n.kbkcompanies.com/webhook/infinite-audit"; // Replace with your n8n webhook URL.
+  const WEBHOOK_URL = env.WEBHOOK_URL || "WEBHOOK_URL_HERE"; // Prefer environment variable in Cloudflare Pages.
   const API_KEY = env.API_KEY; // Optional: set an API key in Cloudflare Pages environment variables.
+
+  if (!WEBHOOK_URL || WEBHOOK_URL === "WEBHOOK_URL_HERE") {
+    return new Response(
+      JSON.stringify({
+        error: "WEBHOOK_URL is not configured. Set it in Cloudflare Pages > Settings > Environment variables.",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
 
   // Optionally require an API key if one is configured.
   if (API_KEY) {
@@ -27,18 +39,45 @@ export async function onRequestPost(context) {
   }
 
   // Forward request to the webhook.
-  const webhookResponse = await fetch(WEBHOOK_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
+  try {
+    const webhookResponse = await fetch(WEBHOOK_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
 
-  const data = await webhookResponse.text();
+    const data = await webhookResponse.text();
 
-  return new Response(data, {
-    status: webhookResponse.status,
-    headers: { "Content-Type": webhookResponse.headers.get("Content-Type") || "application/json" },
-  });
+    if (!webhookResponse.ok) {
+      return new Response(
+        JSON.stringify({
+          error: "Webhook responded with an error.",
+          webhookStatus: webhookResponse.status,
+          webhookBody: data.slice(0, 1000),
+        }),
+        {
+          status: webhookResponse.status,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    return new Response(data, {
+      status: webhookResponse.status,
+      headers: { "Content-Type": webhookResponse.headers.get("Content-Type") || "application/json" },
+    });
+  } catch (error) {
+    return new Response(
+      JSON.stringify({
+        error: "Unable to reach the webhook endpoint.",
+        details: error instanceof Error ? error.message : String(error),
+      }),
+      {
+        status: 502,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
 }
