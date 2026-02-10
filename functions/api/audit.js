@@ -45,6 +45,18 @@ export async function onRequestPost(context) {
     );
   }
 
+  if (!WEBHOOK_URL || WEBHOOK_URL === "WEBHOOK_URL_HERE") {
+    return new Response(
+      JSON.stringify({
+        error: "WEBHOOK_URL is not configured. Set it in Cloudflare Pages > Settings > Environment variables.",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   // Optionally require an API key if one is configured.
   if (API_KEY) {
     const providedKey = request.headers.get("x-api-key");
