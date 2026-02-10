@@ -147,3 +147,22 @@ When n8n finishes, it generates an **Audit Link**. When a business owner opens i
   * **`image`: Full URL to a hosted image**  
   * **`review`: The Google Review link**
 
+
+---
+
+## **Debugging Webhook Failures (Cloudflare Pages)**
+
+If the dashboard says the audit failed, use this checklist:
+
+1. **Confirm this is Pages Functions (not a separate Worker):** your frontend posts to `/api/audit`, which is handled by `functions/api/audit.js`.
+2. **Set env vars in Cloudflare Pages:**
+   - `WEBHOOK_URL` (required)
+   - `API_KEY` (optional; only if your client also sends `x-api-key`)
+3. **Open browser DevTools > Network > `/api/audit`:**
+   - Check the JSON response body for `error`, `webhookStatus`, and `details`.
+   - Copy the `x-debug-id` response header.
+4. **Open Cloudflare Pages logs:** search for that debug id (`audit:<debug-id>`) to see server-side details.
+5. **If webhook status is non-200:** fix your n8n node path/auth/payload expectations.
+6. **If you get reachability errors:** verify webhook host is public HTTPS and not blocked by firewall rules.
+7. **Fast config check:** open `https://<your-pages-domain>/api/audit` in your browser. It should return JSON with `checks.webhookConfigured: true` and `checks.webhookLooksValid: true`.
+
