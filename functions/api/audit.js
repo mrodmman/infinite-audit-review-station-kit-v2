@@ -1,7 +1,7 @@
 // Cloudflare Pages Function: forwards audit payloads to an n8n webhook.
 export async function onRequestPost(context) {
   const { request, env } = context;
-  const WEBHOOK_URL = "WEBHOOK_URL_HERE"; // Replace with your n8n webhook URL.
+  const WEBHOOK_URL = "https://n8n.kbkcompanies.com/webhook/infinite-audit"; // Replace with your n8n webhook URL.
   const API_KEY = env.API_KEY; // Optional: set an API key in Cloudflare Pages environment variables.
 
   // Optionally require an API key if one is configured.
